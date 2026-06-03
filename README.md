@@ -1,6 +1,6 @@
 # Gym Admin Dashboard
 
-Web Admin Dashboard untuk sistem manajemen gym, dibangun dengan Next.js 16, Tailwind CSS 4, dan shadcn/ui. Terintegrasi dengan API Laravel [gym-management-api](../gym-management-api).
+Web Admin Dashboard untuk sistem manajemen gym, dibangun dengan Next.js 16, Tailwind CSS 4, dan shadcn/ui. Terintegrasi dengan API Laravel [gym-management-api](https://github.com/Bagas34645/gym-management-api).
 
 ## Persyaratan
 
