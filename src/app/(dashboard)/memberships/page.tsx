@@ -53,6 +53,9 @@ export default function MembershipsPage() {
         actions={
           <>
             <Button variant="outline" size="sm" asChild>
+              <Link href="/memberships/renewals">Perpanjangan</Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
               <Link href="/memberships/expired">Kedaluwarsa</Link>
             </Button>
             <Button size="sm" asChild>

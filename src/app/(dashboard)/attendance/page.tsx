@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { ScanFace } from "lucide-react";
 import { toast } from "sonner";
 import { apiGet, apiPost } from "@/lib/api-client";
 import { PageHeader } from "@/components/shared/page-header";
@@ -56,10 +57,19 @@ export default function AttendanceLivePage() {
         actions={
           <>
             <Button variant="outline" size="sm" asChild>
+              <Link href="/attendance/face">Verifikasi Wajah</Link>
+            </Button>
+            <Button variant="outline" size="sm" asChild>
               <Link href="/attendance/history">Riwayat</Link>
             </Button>
             <Button variant="outline" size="sm" asChild>
               <Link href="/attendance/recap">Rekap</Link>
+            </Button>
+            <Button size="sm" asChild>
+              <Link href="/kiosk" target="_blank">
+                <ScanFace className="size-4" />
+                Buka Kiosk
+              </Link>
             </Button>
           </>
         }
