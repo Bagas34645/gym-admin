@@ -58,7 +58,7 @@ export default function LoginPage() {
                   <FormItem>
                     <FormLabel>Email atau HP</FormLabel>
                     <FormControl>
-                      <Input placeholder="admin@gym.local" {...field} />
+                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -71,7 +71,7 @@ export default function LoginPage() {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="••••••••" {...field} />
+                      <Input type="password" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

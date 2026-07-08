@@ -21,7 +21,7 @@ Buka [http://localhost:3000](http://localhost:3000).
 
 | Email | Password | Role |
 |-------|----------|------|
-| `admin@gym.local` | `password` | admin |
+| `admin@coregym.id` | `password` | admin |
 
 Pastikan backend sudah di-seed (`php artisan db:seed`).
 
