@@ -26,18 +26,23 @@ export default function NotificationsPage() {
   const [broadcast, setBroadcast] = useState(false);
 
   const mutation = useMutation({
-    mutationFn: () =>
-      apiPost<{ sent_to: number }>("/admin/notifications/send", {
+    mutationFn: () => {
+      if (!broadcast && !userId.trim()) {
+        throw new Error("Masukkan ID anggota atau aktifkan broadcast");
+      }
+      return apiPost<{ sent_to: number }>("/admin/notifications/send", {
         title,
         message,
         type,
-        user_id: broadcast ? undefined : userId || undefined,
+        user_id: broadcast ? undefined : userId.trim(),
         broadcast,
-      }),
+      });
+    },
     onSuccess: (res) => {
       toast.success(`Notifikasi terkirim ke ${res.data.sent_to} penerima`);
       setTitle("");
       setMessage("");
+      setUserId("");
     },
     onError: (e) => toast.error(e.message),
   });
@@ -87,13 +92,18 @@ export default function NotificationsPage() {
           </div>
           {!broadcast && (
             <div>
-              <Label>ID Anggota (opsional)</Label>
-              <Input value={userId} onChange={(e) => setUserId(e.target.value)} />
+              <Label>ID Anggota</Label>
+              <Input
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
+                placeholder="UUID anggota"
+                required
+              />
             </div>
           )}
           <Button
             onClick={() => mutation.mutate()}
-            disabled={!title || !message || mutation.isPending}
+            disabled={!title || !message || mutation.isPending || (!broadcast && !userId.trim())}
           >
             Kirim
           </Button>
