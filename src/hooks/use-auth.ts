@@ -1,12 +1,13 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { apiPost } from "@/lib/api-client";
 import type { UserProfile } from "@/lib/types/api";
 
 export function useAuth() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const qc = useQueryClient();
 
   const meQuery = useQuery({
@@ -34,7 +35,9 @@ export function useAuth() {
     },
     onSuccess: (data) => {
       qc.setQueryData(["auth", "me"], data);
-      router.push("/");
+      const from = searchParams.get("from");
+      const destination = from && from.startsWith("/") && !from.startsWith("/login") ? from : "/";
+      router.push(destination);
       router.refresh();
     },
   });
