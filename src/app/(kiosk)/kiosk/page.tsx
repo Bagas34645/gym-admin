@@ -59,7 +59,7 @@ export default function KioskPage() {
       const fd = new FormData();
       fd.append("face_image", blob, "kiosk.jpg");
 
-      const res = await apiUpload<KioskResult>("/admin/attendance/kiosk-checkin", fd);
+      const res = await apiUpload<KioskResult>("/kiosk/checkin", fd);
 
       setOutcome({ kind: "success", data: res.data });
       await new Promise((r) => setTimeout(r, RESULT_DISPLAY_MS));

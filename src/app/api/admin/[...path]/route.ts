@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { laravelMultipart, laravelRequest } from "@/lib/laravel-client";
+import { queryFromUrl, requireAdminSession } from "@/lib/bff-auth";
 
 type RouteContext = { params: Promise<{ path: string[] }> };
 
@@ -8,15 +9,10 @@ async function resolvePath(ctx: RouteContext) {
   return `/admin/${path.join("/")}`;
 }
 
-function queryFromUrl(url: URL) {
-  const params: Record<string, string> = {};
-  url.searchParams.forEach((v, k) => {
-    params[k] = v;
-  });
-  return params;
-}
-
 export async function GET(request: NextRequest, ctx: RouteContext) {
+  const denied = await requireAdminSession();
+  if (denied) return denied;
+
   try {
     const path = await resolvePath(ctx);
     const result = await laravelRequest("GET", path, {
@@ -38,6 +34,9 @@ export async function GET(request: NextRequest, ctx: RouteContext) {
 }
 
 export async function POST(request: NextRequest, ctx: RouteContext) {
+  const denied = await requireAdminSession();
+  if (denied) return denied;
+
   try {
     const path = await resolvePath(ctx);
     const contentType = request.headers.get("content-type") ?? "";
@@ -64,6 +63,9 @@ export async function POST(request: NextRequest, ctx: RouteContext) {
 }
 
 export async function PUT(request: NextRequest, ctx: RouteContext) {
+  const denied = await requireAdminSession();
+  if (denied) return denied;
+
   try {
     const path = await resolvePath(ctx);
     const body = await request.json();
@@ -83,6 +85,9 @@ export async function PUT(request: NextRequest, ctx: RouteContext) {
 }
 
 export async function DELETE(_request: NextRequest, ctx: RouteContext) {
+  const denied = await requireAdminSession();
+  if (denied) return denied;
+
   try {
     const path = await resolvePath(ctx);
     const result = await laravelRequest("DELETE", path);

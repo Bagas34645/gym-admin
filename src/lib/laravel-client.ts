@@ -128,6 +128,7 @@ export async function laravelRequest<T>(
 export async function laravelMultipart<T>(
   path: string,
   formData: FormData,
+  retry = true,
 ): Promise<{ data: T; message: string }> {
   const tokens = await getTokens();
   const res = await fetch(`${API_URL}${path.startsWith("/") ? path : `/${path}`}`, {
@@ -138,6 +139,14 @@ export async function laravelMultipart<T>(
     },
     body: formData,
   });
+
+  if (res.status === 401 && tokens.refresh && retry) {
+    const ok = await refreshAccessToken(tokens.refresh);
+    if (ok) {
+      return laravelMultipart<T>(path, formData, false);
+    }
+  }
+
   const body = (await res.json()) as ApiSuccess<T> | ApiErrorBody;
   if (!body.success) {
     throw Object.assign(new Error(body.message), { status: res.status, errors: body.errors });
