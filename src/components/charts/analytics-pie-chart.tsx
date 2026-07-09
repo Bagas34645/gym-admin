@@ -8,6 +8,10 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { ChartEmptyState } from "@/components/charts/chart-empty-state";
+import {
+  normalizePaymentMethodAmounts,
+  paymentMethodChartConfig,
+} from "@/components/charts/chart-config";
 import { formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -91,7 +95,7 @@ export function AnalyticsPieChart({
     return <ChartEmptyState compact={compact} />;
   }
 
-  const total = data.reduce((sum, item) => sum + item.value, 0);
+  const total = data.reduce((sum, item) => sum + Number(item.value), 0);
   const formatValue =
     valueFormatter ?? ((value: number) => value.toLocaleString("id-ID"));
   const chartInnerRadius = innerRadius ?? (compact ? 42 : 60);
@@ -211,14 +215,15 @@ export function AnalyticsPaymentPieChart({
   compact = false,
   className,
 }: {
-  byMethod: Record<string, number>;
+  byMethod: Record<string, number> | unknown;
   compact?: boolean;
   className?: string;
 }) {
-  const entries = Object.entries(byMethod).filter(([, amount]) => amount > 0);
+  const normalized = normalizePaymentMethodAmounts(byMethod);
+  const entries = Object.entries(normalized);
 
   if (!entries.length) {
-    return <ChartEmptyState message="Tidak ada data pembayaran" />;
+    return <ChartEmptyState message="Tidak ada data pembayaran" compact={compact} />;
   }
 
   const colors = [
@@ -231,16 +236,11 @@ export function AnalyticsPaymentPieChart({
 
   const data = entries.map(([name, value], index) => ({
     name,
-    value,
+    value: Number(value),
     fill: colors[index % colors.length],
   }));
 
-  const config = Object.fromEntries(
-    entries.map(([name], index) => [
-      name,
-      { label: name, color: colors[index % colors.length] },
-    ]),
-  );
+  const config = paymentMethodChartConfig(entries.map(([name]) => name));
 
   return (
     <AnalyticsPieChart
@@ -250,7 +250,8 @@ export function AnalyticsPaymentPieChart({
       showTotal
       totalLabel="Total"
       compact={compact}
-      className={className}
+      strokeWidth={4}
+      className={cn(compact ? "w-[220px] shrink-0" : undefined, className)}
     />
   );
 }
