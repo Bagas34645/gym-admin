@@ -5,6 +5,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { apiGet, apiPost } from "@/lib/api-client";
 import type { MembershipPackage } from "@/lib/types/api";
+import { MemberSearchInput } from "@/components/shared/member-search-input";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -54,12 +55,8 @@ export default function ActivateMembershipPage() {
       <Card>
         <CardContent className="space-y-4 pt-6">
           <div>
-            <Label>ID Anggota (UUID)</Label>
-            <Input
-              value={userId}
-              onChange={(e) => setUserId(e.target.value)}
-              placeholder="UUID dari halaman detail anggota"
-            />
+            <Label>Anggota</Label>
+            <MemberSearchInput value={userId} onChange={setUserId} />
           </div>
           <div>
             <Label>Paket</Label>

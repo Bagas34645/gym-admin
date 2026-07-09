@@ -38,7 +38,7 @@ interface Trainer {
 }
 
 const emptyForm = {
-  user_id: "",
+  name: "",
   specialization: "",
   experience_years: 1,
   certification: "",
@@ -139,7 +139,7 @@ export default function TrainersPage() {
                         onClick={() => {
                           setEditing(t);
                           setForm({
-                            user_id: t.user?.id ?? "",
+                            name: t.user?.name ?? "",
                             specialization: t.specialization,
                             experience_years: t.experience_years,
                             certification: "",
@@ -175,15 +175,14 @@ export default function TrainersPage() {
             <DialogTitle>{editing ? "Edit Pelatih" : "Tambah Pelatih"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {!editing && (
-              <div>
-                <Label>ID User (UUID)</Label>
-                <Input
-                  value={form.user_id}
-                  onChange={(e) => setForm({ ...form, user_id: e.target.value })}
-                />
-              </div>
-            )}
+            <div>
+              <Label>Nama Pelatih</Label>
+              <Input
+                value={form.name}
+                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="Masukkan nama pelatih"
+              />
+            </div>
             <div>
               <Label>Spesialisasi</Label>
               <Input
@@ -213,7 +212,10 @@ export default function TrainersPage() {
                 />
               </div>
             </div>
-            <Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending}>
+            <Button
+              onClick={() => saveMutation.mutate()}
+              disabled={saveMutation.isPending || !form.name.trim()}
+            >
               Simpan
             </Button>
           </div>
