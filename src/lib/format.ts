@@ -28,6 +28,36 @@ export function formatDateTime(date: string | Date | null | undefined): string {
   }).format(d);
 }
 
+export function formatChartDate(
+  date: string,
+  groupBy: "day" | "week" | "month" = "day",
+): string {
+  const d = new Date(date);
+  if (groupBy === "month") {
+    return new Intl.DateTimeFormat("id-ID", {
+      month: "short",
+      year: "numeric",
+    }).format(d);
+  }
+  if (groupBy === "week") {
+    return new Intl.DateTimeFormat("id-ID", {
+      day: "numeric",
+      month: "short",
+    }).format(d);
+  }
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "numeric",
+    month: "short",
+  }).format(d);
+}
+
+export function formatCompactNumber(value: number): string {
+  return new Intl.NumberFormat("id-ID", {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(value);
+}
+
 export function resolveDownloadUrl(url: string): string {
   if (url.startsWith("http")) return url;
   const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/v1$/, "") ?? "http://localhost:8000";
