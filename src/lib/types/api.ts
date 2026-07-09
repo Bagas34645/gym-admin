@@ -60,6 +60,33 @@ export interface DashboardStats {
   timeline: { date: string; value: number }[];
 }
 
+export interface ReportTimelinePoint {
+  date: string;
+  value: number;
+}
+
+export interface MembersReport {
+  from: string;
+  to: string;
+  total: number;
+  members: unknown[];
+  timeline: ReportTimelinePoint[];
+}
+
+export interface AttendanceReport {
+  from: string;
+  to: string;
+  total: number;
+  records: unknown[];
+  timeline: ReportTimelinePoint[];
+}
+
+export interface FinanceReport {
+  total_revenue: number;
+  by_payment_method: Record<string, number>;
+  timeline: { date: string; revenue: number }[];
+}
+
 export interface MemberListItem {
   id: string;
   name: string;
