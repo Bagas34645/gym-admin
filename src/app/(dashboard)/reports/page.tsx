@@ -27,7 +27,11 @@ import { AnalyticsAreaChart } from "@/components/charts/analytics-area-chart";
 import { AnalyticsBarChart } from "@/components/charts/analytics-bar-chart";
 import { AnalyticsPaymentPieChart } from "@/components/charts/analytics-pie-chart";
 import { ChartErrorState } from "@/components/charts/chart-empty-state";
-import { metricChartConfig } from "@/components/charts/chart-config";
+import {
+  metricChartConfig,
+  normalizePaymentMethodAmounts,
+  PAYMENT_METHOD_LABELS,
+} from "@/components/charts/chart-config";
 import { formatCurrency, resolveDownloadUrl } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -248,11 +252,10 @@ export default function ReportsPage() {
                 </CardHeader>
                 <CardContent>
                   {(() => {
-                    const byMethod =
-                      financeReport.data?.data.by_payment_method ?? {};
-                    const entries = Object.entries(byMethod).filter(
-                      ([, amount]) => amount > 0,
+                    const byMethod = normalizePaymentMethodAmounts(
+                      financeReport.data?.data.by_payment_method,
                     );
+                    const entries = Object.entries(byMethod);
                     const total = entries.reduce(
                       (sum, [, amount]) => sum + amount,
                       0,
@@ -271,7 +274,7 @@ export default function ReportsPage() {
                         <AnalyticsPaymentPieChart
                           byMethod={byMethod}
                           compact
-                          className="mx-auto shrink-0 sm:mx-0"
+                          className="mx-auto sm:mx-0"
                         />
                         <ul className="min-w-0 flex-1 divide-y rounded-lg border">
                           {entries.map(([method, amount], index) => {
@@ -292,8 +295,8 @@ export default function ReportsPage() {
                                       PAYMENT_COLORS[index % PAYMENT_COLORS.length],
                                     )}
                                   />
-                                  <span className="truncate text-sm font-medium capitalize">
-                                    {method}
+                                  <span className="truncate text-sm font-medium">
+                                    {PAYMENT_METHOD_LABELS[method] ?? method}
                                   </span>
                                 </div>
                                 <div className="shrink-0 text-right">
