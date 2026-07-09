@@ -52,6 +52,54 @@ export const attendanceComparisonChartConfig: ChartConfig = {
   count: { label: "Jumlah", color: "var(--color-chart-2)" },
 };
 
+export const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  transfer: "Transfer",
+  cash: "Tunai",
+  qris: "QRIS",
+  midtrans: "Midtrans",
+};
+
+export function normalizePaymentMethodAmounts(
+  raw: unknown,
+): Record<string, number> {
+  if (raw == null) {
+    return {};
+  }
+
+  if (Array.isArray(raw)) {
+    const result: Record<string, number> = {};
+
+    for (const item of raw) {
+      if (!item || typeof item !== "object") {
+        continue;
+      }
+
+      const row = item as Record<string, unknown>;
+      const method = String(row.payment_method ?? row.method ?? "");
+      const amount = Number(row.revenue ?? row.amount ?? row.value);
+
+      if (method && Number.isFinite(amount) && amount > 0) {
+        result[method] = (result[method] ?? 0) + amount;
+      }
+    }
+
+    return result;
+  }
+
+  if (typeof raw === "object") {
+    return Object.fromEntries(
+      Object.entries(raw as Record<string, unknown>)
+        .map(([method, amount]) => [method, Number(amount)] as const)
+        .filter(
+          (entry): entry is readonly [string, number] =>
+            Number.isFinite(entry[1]) && entry[1] > 0,
+        ),
+    );
+  }
+
+  return {};
+}
+
 export function paymentMethodChartConfig(
   methods: string[],
 ): ChartConfig {
@@ -67,7 +115,7 @@ export function paymentMethodChartConfig(
     methods.map((method, index) => [
       method,
       {
-        label: method,
+        label: PAYMENT_METHOD_LABELS[method] ?? method,
         color: colors[index % colors.length],
       },
     ]),
