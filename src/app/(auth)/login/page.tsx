@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -16,7 +17,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { useAuth } from "@/hooks/use-auth";
+import { useLogin } from "@/hooks/use-auth";
 
 const loginSchema = z.object({
   identifier: z.string().min(1, "Email atau nomor HP wajib diisi"),
@@ -25,8 +26,8 @@ const loginSchema = z.object({
 
 type LoginForm = z.infer<typeof loginSchema>;
 
-export default function LoginPage() {
-  const { loginMutation } = useAuth();
+function LoginForm() {
+  const { loginMutation } = useLogin();
   const form = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: { identifier: "", password: "" },
@@ -89,5 +90,24 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader className="text-center">
+              <CardTitle className="text-2xl">Gym Admin</CardTitle>
+              <CardDescription>Memuat...</CardDescription>
+            </CardHeader>
+          </Card>
+        </div>
+      }
+    >
+      <LoginForm />
+    </Suspense>
   );
 }
