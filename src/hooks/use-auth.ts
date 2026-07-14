@@ -3,6 +3,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiPost } from "@/lib/api-client";
+import {
+  isAdminRole,
+  isTrainerRole,
+  portalHomeForRole,
+} from "@/lib/auth-cookies";
 import type { UserProfile } from "@/lib/types/api";
 
 export function useAuth() {
@@ -52,8 +57,19 @@ export function useLogin() {
     onSuccess: (data) => {
       qc.setQueryData(["auth", "me"], data);
       const from = searchParams.get("from");
-      const destination =
-        from && from.startsWith("/") && !from.startsWith("/login") ? from : "/";
+      const defaultHome = portalHomeForRole(data.role);
+      const isTrainerPortalPath =
+        !!from && (from === "/trainer" || from.startsWith("/trainer/"));
+
+      let destination = defaultHome;
+      if (from && from.startsWith("/") && !from.startsWith("/login")) {
+        if (isTrainerRole(data.role) && isTrainerPortalPath) {
+          destination = from;
+        } else if (isAdminRole(data.role) && !isTrainerPortalPath) {
+          destination = from;
+        }
+      }
+
       router.push(destination);
       router.refresh();
     },

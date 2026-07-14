@@ -5,6 +5,7 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { apiPost } from "@/lib/api-client";
 import { PageHeader } from "@/components/shared/page-header";
+import { MemberSearchInput } from "@/components/shared/member-search-input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -28,7 +29,7 @@ export default function NotificationsPage() {
   const mutation = useMutation({
     mutationFn: () => {
       if (!broadcast && !userId.trim()) {
-        throw new Error("Masukkan ID anggota atau aktifkan broadcast");
+        throw new Error("Pilih anggota atau aktifkan broadcast");
       }
       return apiPost<{ sent_to: number }>("/admin/notifications/send", {
         title,
@@ -51,23 +52,35 @@ export default function NotificationsPage() {
     <div className="mx-auto max-w-lg space-y-6">
       <PageHeader
         title="Kirim Notifikasi"
-        description="Kirim notifikasi ke anggota tertentu atau semua"
+        description="Notifikasi muncul di app member (lonceng) dan banner perangkat"
       />
       <Card>
         <CardHeader>
           <CardTitle>Form Notifikasi</CardTitle>
-          <CardDescription>Pilih broadcast untuk kirim ke semua anggota</CardDescription>
+          <CardDescription>
+            Kirim ke satu anggota atau broadcast ke semua. Chat dari menu Chat
+            otomatis menjadi notifikasi bertipe Chat di app member.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
+          <div className="space-y-2">
             <Label>Judul</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+            <Input
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Contoh: Promo bulan ini"
+            />
           </div>
-          <div>
+          <div className="space-y-2">
             <Label>Pesan</Label>
-            <Textarea value={message} onChange={(e) => setMessage(e.target.value)} rows={4} />
+            <Textarea
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={4}
+              placeholder="Isi pesan yang akan dibaca member"
+            />
           </div>
-          <div>
+          <div className="space-y-2">
             <Label>Tipe</Label>
             <Select value={type} onValueChange={setType}>
               <SelectTrigger>
@@ -76,8 +89,12 @@ export default function NotificationsPage() {
               <SelectContent>
                 <SelectItem value="system">Sistem</SelectItem>
                 <SelectItem value="promo">Promo</SelectItem>
-                <SelectItem value="membership_reminder">Pengingat Membership</SelectItem>
-                <SelectItem value="workout_reminder">Pengingat Latihan</SelectItem>
+                <SelectItem value="membership_reminder">
+                  Pengingat Membership
+                </SelectItem>
+                <SelectItem value="workout_reminder">
+                  Pengingat Latihan
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -91,19 +108,19 @@ export default function NotificationsPage() {
             <Label htmlFor="broadcast">Kirim ke semua anggota</Label>
           </div>
           {!broadcast && (
-            <div>
-              <Label>ID Anggota</Label>
-              <Input
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-                placeholder="UUID anggota"
-                required
-              />
+            <div className="space-y-2">
+              <Label>Anggota</Label>
+              <MemberSearchInput value={userId} onChange={setUserId} />
             </div>
           )}
           <Button
             onClick={() => mutation.mutate()}
-            disabled={!title || !message || mutation.isPending || (!broadcast && !userId.trim())}
+            disabled={
+              !title ||
+              !message ||
+              mutation.isPending ||
+              (!broadcast && !userId.trim())
+            }
           >
             Kirim
           </Button>

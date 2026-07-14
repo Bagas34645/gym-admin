@@ -18,7 +18,10 @@ export function formatDate(date: string | Date | null | undefined): string {
 
 export function formatDateTime(date: string | Date | null | undefined): string {
   if (!date) return "-";
-  const d = typeof date === "string" ? new Date(date) : date;
+  const d = typeof date === "string" ? new Date(date.replace(" ", "T")) : date;
+
+  if (isNaN(d.getTime())) return "-";
+
   return new Intl.DateTimeFormat("id-ID", {
     day: "numeric",
     month: "short",
@@ -60,6 +63,8 @@ export function formatCompactNumber(value: number): string {
 
 export function resolveDownloadUrl(url: string): string {
   if (url.startsWith("http")) return url;
-  const base = process.env.NEXT_PUBLIC_API_URL?.replace(/\/v1$/, "") ?? "http://localhost:8000";
+  const base =
+    process.env.NEXT_PUBLIC_API_URL?.replace(/\/v1$/, "") ??
+    "http://localhost:8000";
   return `${base}${url.startsWith("/") ? url : `/${url}`}`;
 }

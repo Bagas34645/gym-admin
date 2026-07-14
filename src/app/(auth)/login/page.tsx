@@ -46,7 +46,7 @@ function LoginForm() {
           <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-full bg-primary text-primary-foreground">
             <Dumbbell className="size-6" />
           </div>
-          <CardTitle className="text-2xl">Gym Admin</CardTitle>
+          <CardTitle className="text-2xl">Core Gym</CardTitle>
           <CardDescription>Masuk ke dashboard administrasi</CardDescription>
         </CardHeader>
         <CardContent>

@@ -43,7 +43,7 @@ npm run dev
 ## Arsitektur
 
 - **BFF**: Route Handlers di `/api/*` mem-proxy ke Laravel dengan JWT di httpOnly cookies
-- **Auth**: Login → `POST /v1/auth/login` → guard role `admin` / `super_admin`
+- **Auth**: Login → `POST /v1/auth/login` → guard role `admin`
 - **Data**: TanStack Query + envelope API `{ success, data, meta }`
 
 ## Modul

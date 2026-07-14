@@ -1,12 +1,36 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { ACCESS_TOKEN_COOKIE } from "@/lib/auth-cookies";
+import {
+  ACCESS_TOKEN_COOKIE,
+  isAdminRole,
+  isTrainerRole,
+  portalHomeForRole,
+  USER_ROLE_COOKIE,
+} from "@/lib/auth-cookies";
 
 const publicPaths = ["/login", "/kiosk"];
+
+const adminOnlyPrefixes = [
+  "/members",
+  "/memberships",
+  "/packages",
+  "/attendance",
+  "/trainers",
+  "/reports",
+  "/notifications",
+  "/chat",
+  "/feedback",
+];
+
+function isAdminDashboardPath(pathname: string): boolean {
+  if (pathname === "/") return true;
+  return adminOnlyPrefixes.some((prefix) => pathname.startsWith(prefix));
+}
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
+  const role = request.cookies.get(USER_ROLE_COOKIE)?.value;
   const isPublic = publicPaths.some((p) => pathname.startsWith(p));
   const isApi = pathname.startsWith("/api");
 
@@ -19,7 +43,18 @@ export function middleware(request: NextRequest) {
   }
 
   if (token && pathname === "/login") {
+    return NextResponse.redirect(new URL(portalHomeForRole(role ?? "admin"), request.url));
+  }
+
+  // Portal pelatih: /trainer atau /trainer/... (bukan /trainers admin)
+  const isTrainerPortal =
+    pathname === "/trainer" || pathname.startsWith("/trainer/");
+  if (token && isTrainerPortal && !isTrainerRole(role ?? "")) {
     return NextResponse.redirect(new URL("/", request.url));
+  }
+
+  if (token && isAdminDashboardPath(pathname) && !isAdminRole(role ?? "")) {
+    return NextResponse.redirect(new URL("/trainer", request.url));
   }
 
   return NextResponse.next();
