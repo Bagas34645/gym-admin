@@ -11,24 +11,21 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { navItems } from "@/components/layout/nav-items";
-import { useChatUnseenDot } from "@/hooks/use-chat-unseen-dot";
+import { trainerNavItems } from "@/components/layout/trainer-nav-items";
 import { Dumbbell } from "lucide-react";
 
-export function AppSidebar() {
+export function TrainerSidebar() {
   const pathname = usePathname();
-  const chatHasUnseen = useChatUnseenDot();
 
   return (
     <Sidebar>
       <SidebarHeader className="border-b border-sidebar-border px-4 py-4">
-        <Link href="/" className="flex items-center gap-2 font-semibold">
+        <Link href="/trainer" className="flex items-center gap-2 font-semibold">
           <Dumbbell className="size-5" />
-          <span>Gym Admin</span>
+          <span>Portal Pelatih</span>
         </Link>
       </SidebarHeader>
       <SidebarContent>
@@ -36,28 +33,20 @@ export function AppSidebar() {
           <SidebarGroupLabel>Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {navItems.map((item) => {
+              {trainerNavItems.map((item) => {
                 const active =
-                  item.href === "/"
-                    ? pathname === "/"
+                  item.href === "/trainer"
+                    ? pathname === "/trainer"
                     : pathname.startsWith(item.href);
-                const showChatDot = item.href === "/chat" && chatHasUnseen;
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton asChild isActive={active}>
-                      <Link href={item.href} className="relative">
+                      <Link href={item.href}>
                         <item.icon />
                         <span>{item.title}</span>
                       </Link>
                     </SidebarMenuButton>
-                    {showChatDot && (
-                      <SidebarMenuBadge
-                        className="pointer-events-none top-1.5 right-2 flex !size-2 min-w-0 items-center justify-center rounded-full bg-destructive p-0 text-[0px] text-transparent group-data-[collapsible=icon]:!flex group-data-[collapsible=icon]:top-1 group-data-[collapsible=icon]:right-1"
-                        aria-label="Pesan chat baru"
-                      >
-                        •
-                      </SidebarMenuBadge>
-                    )}                  </SidebarMenuItem>
+                  </SidebarMenuItem>
                 );
               })}
             </SidebarMenu>

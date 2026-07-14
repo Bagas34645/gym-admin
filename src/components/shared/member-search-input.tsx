@@ -12,14 +12,18 @@ interface MemberSearchInputProps {
   value: string;
   onChange: (userId: string) => void;
   placeholder?: string;
+  searchPath?: string;
+  initialName?: string;
 }
 
 export function MemberSearchInput({
   value,
   onChange,
   placeholder = "Ketik nama anggota...",
+  searchPath = "/admin/members/search",
+  initialName = "",
 }: MemberSearchInputProps) {
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState(initialName);
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [selectedName, setSelectedName] = useState("");
@@ -30,10 +34,17 @@ export function MemberSearchInput({
     return () => clearTimeout(timer);
   }, [query]);
 
+  useEffect(() => {
+    if (initialName) {
+      setQuery(initialName);
+      setSelectedName(initialName);
+    }
+  }, [initialName]);
+
   const searchQuery = useQuery({
-    queryKey: ["admin", "members", "search", debouncedQuery],
+    queryKey: ["members", "search", searchPath, debouncedQuery],
     queryFn: () =>
-      apiGet<MemberListItem[]>("/admin/members/search", {
+      apiGet<MemberListItem[]>(searchPath, {
         search: debouncedQuery,
         per_page: 10,
       }),

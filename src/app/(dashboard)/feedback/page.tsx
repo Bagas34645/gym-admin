@@ -20,9 +20,11 @@ import { formatDateTime } from "@/lib/format";
 interface FeedbackItem {
   id: string;
   rating: number;
-  comment: string;
+  category?: string;
+  message?: string | null;
+  is_anonymous?: boolean;
   created_at: string;
-  user?: { name: string; email: string };
+  user?: { name: string; email: string } | null;
 }
 
 export default function FeedbackPage() {
@@ -60,12 +62,20 @@ export default function FeedbackPage() {
                     <TableRow key={f.id}>
                       <TableCell>
                         <div>
-                          <p className="font-medium">{f.user?.name ?? "-"}</p>
-                          <p className="text-xs text-muted-foreground">{f.user?.email}</p>
+                          <p className="font-medium">
+                            {f.is_anonymous ? "Anonim" : (f.user?.name ?? "-")}
+                          </p>
+                          {!f.is_anonymous && (
+                            <p className="text-xs text-muted-foreground">
+                              {f.user?.email}
+                            </p>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>{f.rating}/5</TableCell>
-                      <TableCell className="max-w-md truncate">{f.comment}</TableCell>
+                      <TableCell className="max-w-md truncate">
+                        {f.message || "-"}
+                      </TableCell>
                       <TableCell>{formatDateTime(f.created_at)}</TableCell>
                     </TableRow>
                   ))}

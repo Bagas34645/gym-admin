@@ -1,15 +1,25 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
+import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { apiGet, apiPost } from "@/lib/api-client";
+import { apiGet, apiPost, apiPut } from "@/lib/api-client";
 import { PageHeader } from "@/components/shared/page-header";
+import { StatusBadge } from "@/components/shared/status-badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -19,6 +29,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatCurrency } from "@/lib/format";
 
 interface Schedule {
   id: string;
@@ -35,6 +46,23 @@ interface Performance {
   average_rating: number;
 }
 
+interface TrainerDetail {
+  id: string;
+  specialization: string;
+  experience_years: number;
+  hourly_rate: number;
+  certification?: string | null;
+  bio?: string | null;
+  status: string;
+  user?: {
+    id: string;
+    name: string;
+    email: string;
+    phone?: string;
+    status?: string;
+  };
+}
+
 const days = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
 export default function TrainerDetailPage({
@@ -48,9 +76,24 @@ export default function TrainerDetailPage({
   const [startTime, setStartTime] = useState("08:00");
   const [endTime, setEndTime] = useState("10:00");
   const [capacity, setCapacity] = useState(5);
-  const [workoutUserId, setWorkoutUserId] = useState("");
-  const [workoutName, setWorkoutName] = useState("");
-  const [workoutStart, setWorkoutStart] = useState("");
+
+  const [accountForm, setAccountForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    specialization: "",
+    experience_years: 0,
+    certification: "",
+    bio: "",
+    hourly_rate: 0,
+    status: "active",
+  });
+
+  const trainerQuery = useQuery({
+    queryKey: ["admin", "trainers", id],
+    queryFn: () => apiGet<TrainerDetail>(`/admin/trainers/${id}`),
+  });
 
   const scheduleQuery = useQuery({
     queryKey: ["admin", "trainers", id, "schedule"],
@@ -61,6 +104,24 @@ export default function TrainerDetailPage({
     queryKey: ["admin", "trainers", id, "performance"],
     queryFn: () => apiGet<Performance>(`/admin/trainers/${id}/performance`),
   });
+
+  const trainer = trainerQuery.data?.data;
+
+  useEffect(() => {
+    if (!trainer) return;
+    setAccountForm({
+      name: trainer.user?.name ?? "",
+      email: trainer.user?.email ?? "",
+      phone: trainer.user?.phone ?? "",
+      password: "",
+      specialization: trainer.specialization,
+      experience_years: trainer.experience_years,
+      certification: trainer.certification ?? "",
+      bio: trainer.bio ?? "",
+      hourly_rate: trainer.hourly_rate,
+      status: trainer.status,
+    });
+  }, [trainer]);
 
   const addScheduleMutation = useMutation({
     mutationFn: () =>
@@ -77,19 +138,25 @@ export default function TrainerDetailPage({
     onError: (e) => toast.error(e.message),
   });
 
-  const workoutMutation = useMutation({
+  const updateAccountMutation = useMutation({
     mutationFn: () =>
-      apiPost("/admin/workout-plans", {
-        user_id: workoutUserId,
-        trainer_id: id,
-        name: workoutName,
-        start_date: workoutStart,
+      apiPut(`/admin/trainers/${id}`, {
+        name: accountForm.name,
+        email: accountForm.email,
+        phone: accountForm.phone,
+        specialization: accountForm.specialization,
+        experience_years: accountForm.experience_years,
+        certification: accountForm.certification || null,
+        bio: accountForm.bio || null,
+        hourly_rate: accountForm.hourly_rate,
+        status: accountForm.status,
+        ...(accountForm.password ? { password: accountForm.password } : {}),
       }),
     onSuccess: () => {
-      toast.success("Rencana latihan dibuat");
-      setWorkoutUserId("");
-      setWorkoutName("");
-      setWorkoutStart("");
+      toast.success("Data & akun pelatih diperbarui");
+      setAccountForm((prev) => ({ ...prev, password: "" }));
+      qc.invalidateQueries({ queryKey: ["admin", "trainers", id] });
+      qc.invalidateQueries({ queryKey: ["admin", "trainers"] });
     },
     onError: (e) => toast.error(e.message),
   });
@@ -99,14 +166,179 @@ export default function TrainerDetailPage({
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Detail Pelatih" description={`ID: ${id}`} />
+      <PageHeader
+        title={trainer?.user?.name ?? "Detail Pelatih"}
+        description={trainer?.user?.email ?? `ID: ${id}`}
+        actions={
+          <Button variant="outline" asChild>
+            <Link href="/trainers">Kembali</Link>
+          </Button>
+        }
+      />
 
-      <Tabs defaultValue="schedule">
+      {trainerQuery.isLoading ? (
+        <Skeleton className="h-40" />
+      ) : trainer ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-sm text-muted-foreground">Status</p>
+              <StatusBadge status={trainer.status} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-sm text-muted-foreground">Spesialisasi</p>
+              <p className="font-medium">{trainer.specialization}</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-sm text-muted-foreground">Pengalaman</p>
+              <p className="font-medium">{trainer.experience_years} tahun</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <p className="text-sm text-muted-foreground">Tarif / jam</p>
+              <p className="font-medium">{formatCurrency(trainer.hourly_rate)}</p>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
+
+      <Tabs defaultValue="account">
         <TabsList>
+          <TabsTrigger value="account">Akun & Data</TabsTrigger>
           <TabsTrigger value="schedule">Jadwal</TabsTrigger>
           <TabsTrigger value="performance">Performa</TabsTrigger>
-          <TabsTrigger value="workout">Rencana Latihan</TabsTrigger>
+          <TabsTrigger value="workout">Portal Program</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="account" className="pt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Manajemen Akun Pelatih</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 max-w-xl">
+              <div>
+                <Label>Nama</Label>
+                <Input
+                  value={accountForm.name}
+                  onChange={(e) => setAccountForm({ ...accountForm, name: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <Label>Email (login portal)</Label>
+                  <Input
+                    type="email"
+                    value={accountForm.email}
+                    onChange={(e) => setAccountForm({ ...accountForm, email: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Telepon</Label>
+                  <Input
+                    value={accountForm.phone}
+                    onChange={(e) => setAccountForm({ ...accountForm, phone: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Password baru (opsional)</Label>
+                <Input
+                  type="password"
+                  value={accountForm.password}
+                  onChange={(e) => setAccountForm({ ...accountForm, password: e.target.value })}
+                  placeholder="Kosongkan jika tidak diubah"
+                />
+              </div>
+              <div>
+                <Label>Spesialisasi</Label>
+                <Input
+                  value={accountForm.specialization}
+                  onChange={(e) =>
+                    setAccountForm({ ...accountForm, specialization: e.target.value })
+                  }
+                />
+              </div>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <Label>Pengalaman (tahun)</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={accountForm.experience_years}
+                    onChange={(e) =>
+                      setAccountForm({
+                        ...accountForm,
+                        experience_years: Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+                <div>
+                  <Label>Tarif per jam</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={accountForm.hourly_rate}
+                    onChange={(e) =>
+                      setAccountForm({
+                        ...accountForm,
+                        hourly_rate: Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+              </div>
+              <div>
+                <Label>Sertifikasi</Label>
+                <Input
+                  value={accountForm.certification}
+                  onChange={(e) =>
+                    setAccountForm({ ...accountForm, certification: e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <Label>Bio</Label>
+                <Textarea
+                  rows={3}
+                  value={accountForm.bio}
+                  onChange={(e) => setAccountForm({ ...accountForm, bio: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Status</Label>
+                <Select
+                  value={accountForm.status}
+                  onValueChange={(value) => setAccountForm({ ...accountForm, status: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Aktif</SelectItem>
+                    <SelectItem value="inactive">Nonaktif</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                onClick={() => updateAccountMutation.mutate()}
+                disabled={
+                  updateAccountMutation.isPending ||
+                  !accountForm.name.trim() ||
+                  !accountForm.email.trim() ||
+                  !accountForm.phone.trim()
+                }
+              >
+                Simpan Perubahan
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
         <TabsContent value="schedule" className="space-y-4 pt-4">
           <Card>
@@ -207,27 +439,18 @@ export default function TrainerDetailPage({
         <TabsContent value="workout" className="pt-4">
           <Card>
             <CardHeader>
-              <CardTitle>Buat Rencana Latihan</CardTitle>
+              <CardTitle>Portal Program Latihan</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 max-w-md">
-              <div>
-                <Label>ID Anggota</Label>
-                <Input value={workoutUserId} onChange={(e) => setWorkoutUserId(e.target.value)} />
-              </div>
-              <div>
-                <Label>Nama Program</Label>
-                <Input value={workoutName} onChange={(e) => setWorkoutName(e.target.value)} />
-              </div>
-              <div>
-                <Label>Tanggal Mulai</Label>
-                <Input type="date" value={workoutStart} onChange={(e) => setWorkoutStart(e.target.value)} />
-              </div>
-              <Button
-                onClick={() => workoutMutation.mutate()}
-                disabled={workoutMutation.isPending}
-              >
-                Buat Rencana
-              </Button>
+            <CardContent className="space-y-3 max-w-lg text-sm text-muted-foreground">
+              <p>
+                Program latihan dikelola oleh pelatih melalui portal{" "}
+                <span className="font-medium text-foreground">/trainer</span> setelah login
+                dengan email & password yang Anda atur di tab <strong>Akun & Data</strong>.
+              </p>
+              <p>
+                Dari portal tersebut pelatih dapat membuat program lengkap (latihan, sets, reps)
+                yang langsung muncul di aplikasi mobile anggota.
+              </p>
             </CardContent>
           </Card>
         </TabsContent>

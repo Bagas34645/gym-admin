@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { isAdminRole } from "@/lib/auth-cookies";
+import { isPortalRole } from "@/lib/auth-cookies";
+import { clearUserRoleCookie, setUserRoleCookie } from "@/lib/bff-auth";
 import { clearTokens, getTokens, laravelRequest } from "@/lib/laravel-client";
 import type { UserProfile } from "@/lib/types/api";
 
@@ -14,13 +15,15 @@ export async function GET() {
 
   try {
     const { data } = await laravelRequest<UserProfile>("GET", "/auth/me");
-    if (!isAdminRole(data.role)) {
+    if (!isPortalRole(data.role)) {
       await clearTokens();
+      await clearUserRoleCookie();
       return NextResponse.json(
         { success: false, message: "Tidak memiliki hak akses" },
         { status: 403 },
       );
     }
+    await setUserRoleCookie(data.role);
     return NextResponse.json({ success: true, message: "OK", data });
   } catch (error) {
     const err = error as Error & { status?: number };

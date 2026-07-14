@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import axios from "axios";
-import { isAdminRole } from "@/lib/auth-cookies";
+import { isPortalRole } from "@/lib/auth-cookies";
+import { setUserRoleCookie } from "@/lib/bff-auth";
 import { setTokens } from "@/lib/laravel-client";
 import type { ApiErrorBody, ApiSuccess, LoginResponse, UserProfile } from "@/lib/types/api";
 
@@ -27,17 +28,21 @@ export async function POST(request: Request) {
     });
 
     const profile = meRes.data.data;
-    if (!isAdminRole(profile.role)) {
+    if (!isPortalRole(profile.role)) {
       const { clearTokens } = await import("@/lib/laravel-client");
+      const { clearUserRoleCookie } = await import("@/lib/bff-auth");
       await clearTokens();
+      await clearUserRoleCookie();
       return NextResponse.json(
         {
           success: false,
-          message: "Tidak memiliki hak akses. Hanya admin yang dapat masuk.",
+          message: "Tidak memiliki hak akses. Hanya admin atau pelatih yang dapat masuk.",
         } satisfies ApiErrorBody,
         { status: 403 },
       );
     }
+
+    await setUserRoleCookie(profile.role);
 
     return NextResponse.json({
       success: true,

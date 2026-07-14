@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { clearUserRoleCookie } from "@/lib/bff-auth";
 import { clearTokens, getTokens, laravelRequest } from "@/lib/laravel-client";
 
 export async function POST() {
@@ -14,5 +15,6 @@ export async function POST() {
     // ignore
   }
   await clearTokens();
+  await clearUserRoleCookie();
   return NextResponse.json({ success: true, message: "Logout berhasil" });
 }
