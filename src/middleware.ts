@@ -20,6 +20,7 @@ const adminOnlyPrefixes = [
   "/notifications",
   "/chat",
   "/feedback",
+  "/account",
 ];
 
 function isAdminDashboardPath(pathname: string): boolean {
@@ -34,7 +35,17 @@ export function middleware(request: NextRequest) {
   const isPublic = publicPaths.some((p) => pathname.startsWith(p));
   const isApi = pathname.startsWith("/api");
 
-  if (isApi) return NextResponse.next();
+  const requestHeaders = new Headers(request.headers);
+  const clientIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+    || request.headers.get("x-real-ip")
+    || request.ip;
+  if (clientIp && !requestHeaders.get("x-real-ip")) {
+    requestHeaders.set("x-real-ip", clientIp);
+  }
+
+  if (isApi) {
+    return NextResponse.next({ request: { headers: requestHeaders } });
+  }
 
   if (!token && !isPublic) {
     const login = new URL("/login", request.url);
@@ -57,7 +68,7 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/trainer", request.url));
   }
 
-  return NextResponse.next();
+  return NextResponse.next({ request: { headers: requestHeaders } });
 }
 
 export const config = {

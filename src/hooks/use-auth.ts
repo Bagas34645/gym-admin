@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiPost } from "@/lib/api-client";
@@ -24,6 +25,13 @@ export function useAuth() {
     },
     retry: false,
   });
+
+  useEffect(() => {
+    if (meQuery.isError) {
+      router.replace("/login");
+      router.refresh();
+    }
+  }, [meQuery.isError, router]);
 
   const logoutMutation = useMutation({
     mutationFn: () => apiPost("/auth/logout"),

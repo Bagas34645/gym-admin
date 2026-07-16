@@ -7,13 +7,27 @@ import type { ApiErrorBody, ApiSuccess, LoginResponse, UserProfile } from "@/lib
 
 const API_URL = process.env.API_URL ?? "http://localhost:8000/v1";
 
+function clientMeta(request: Request): Record<string, string> {
+  const ua = request.headers.get("user-agent")?.trim();
+  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const realIp = request.headers.get("x-real-ip")?.trim();
+  const ip = forwarded || realIp;
+
+  return {
+    ...(ua ? { "X-Client-User-Agent": ua } : {}),
+    ...(ip ? { "X-Client-Ip": ip } : {}),
+  };
+}
+
 export async function POST(request: Request) {
   const body = await request.json();
+  const metaHeaders = clientMeta(request);
 
   try {
     const loginRes = await axios.post<ApiSuccess<LoginResponse>>(
       `${API_URL}/auth/login`,
       body,
+      { headers: metaHeaders },
     );
     const loginData = loginRes.data;
     if (!loginData.success) {

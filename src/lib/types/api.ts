@@ -42,6 +42,18 @@ export interface LoginResponse {
   member: { id: string; name: string; membership_status: string };
 }
 
+export interface LoginSession {
+  id: number;
+  platform: string | null;
+  browser: string | null;
+  ip_address: string | null;
+  logged_in_at: string | null;
+  last_active_at: string | null;
+  logged_out_at: string | null;
+  is_current: boolean;
+  status: "current" | "other";
+}
+
 export interface DashboardSummary {
   members: {
     total: number;

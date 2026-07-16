@@ -27,6 +27,10 @@ export async function GET() {
     return NextResponse.json({ success: true, message: "OK", data });
   } catch (error) {
     const err = error as Error & { status?: number };
+    if ((err.status ?? 401) === 401) {
+      await clearTokens();
+      await clearUserRoleCookie();
+    }
     return NextResponse.json(
       { success: false, message: err.message ?? "Gagal memuat profil" },
       { status: err.status ?? 401 },

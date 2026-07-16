@@ -22,7 +22,20 @@ function imageRemotePatterns() {
   return patterns;
 }
 
+/** Extra hosts allowed to hit Next.js dev resources (HMR, client runtime) via LAN IP. */
+function allowedDevOrigins(): string[] {
+  const fromEnv = (process.env.ALLOWED_DEV_ORIGINS ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  return Array.from(
+    new Set(["192.168.18.11", "127.0.0.1", ...fromEnv]),
+  );
+}
+
 const nextConfig: NextConfig = {
+  allowedDevOrigins: allowedDevOrigins(),
   images: {
     remotePatterns: imageRemotePatterns(),
   },
