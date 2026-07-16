@@ -36,9 +36,9 @@ export function middleware(request: NextRequest) {
   const isApi = pathname.startsWith("/api");
 
   const requestHeaders = new Headers(request.headers);
-  const clientIp = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
-    || request.headers.get("x-real-ip")
-    || request.ip;
+  const clientIp =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip");
   if (clientIp && !requestHeaders.get("x-real-ip")) {
     requestHeaders.set("x-real-ip", clientIp);
   }
